@@ -8,7 +8,7 @@ on:
       - ".github/workflows/tests.yaml"
 
 env:
-  WEB3_STORAGE_API_KEY: ${{ secrets.WEB3_STORAGE_API_KEY }}
+  WEB3STORAGE_TOKEN: ${{ secrets.WEB3STORAGE_TOKEN }}
 
 jobs:
   test:
