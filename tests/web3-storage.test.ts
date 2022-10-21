@@ -46,7 +46,7 @@ test("Demo showing basic use case of Web3 Storage", async () => {
     );
   };
 
-  await fetch(); // anywhere between 2s - 25s
+  await fetch(); // anywhere between 5s - 20s
   await fetch(); // under 500ms
   await fetch(); // under 500ms
 });
