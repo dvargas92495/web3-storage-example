@@ -1,0 +1,21 @@
+name: Run Test
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+    paths:
+      - "tests/**"
+      - ".github/workflows/tests.yaml"
+
+env:
+  WEB3_STORAGE_API_KEY: ${{ secrets.WEB3_STORAGE_API_KEY }}
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install
+        run: npm install
+      - name: tests
+        run: npm t
