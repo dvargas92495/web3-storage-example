@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { Web3Storage, File } from "web3.storage";
 import dotenv from "dotenv";
+import { v4 } from "uuid";
 dotenv.config();
 
 function getAccessToken() {
@@ -12,21 +13,18 @@ function makeStorageClient() {
   return new Web3Storage({ token: getAccessToken() });
 }
 
-function makeFileObjects() {
-  const obj = { hello: "world" };
-
-  const files = [new File(["contents-of-file-1"], "plain-utf8.txt")];
-  return files;
-}
-
 test("Demo showing basic use case of Web3 Storage", async () => {
   test.setTimeout(60000);
 
   const client = makeStorageClient();
+  const content = `Random content: ${v4()}`;
+  const files = [new File([content], "plain-utf8.txt")];
   const ipfsUploadStart = performance.now();
-  const cid = await client.put(makeFileObjects(), { wrapWithDirectory: false });
+  const cid = await client.put(files, { wrapWithDirectory: false });
   console.log(
-    "Time to upload data to IPFS:",
+    "Time elapsed uploading",
+    cid,
+    "to IPFS:",
     performance.now() - ipfsUploadStart
   ); // 1s - 2s
 
@@ -34,16 +32,16 @@ test("Demo showing basic use case of Web3 Storage", async () => {
     const ipfsDownloadStart = performance.now();
     const response = await client.get(cid);
     console.log(
-      "Time to download data from IPFS:",
+      "Time elapsed downloading",
+      cid,
+      "from IPFS:",
       performance.now() - ipfsDownloadStart
     );
 
     // sanity checking contents
     const files = await response!.files();
     const firstFileBuffer = await files[0].arrayBuffer();
-    expect(Buffer.from(firstFileBuffer!).toString()).toEqual(
-      "contents-of-file-1"
-    );
+    expect(Buffer.from(firstFileBuffer!).toString()).toEqual(content);
   };
 
   await fetch(); // anywhere between 5s - 20s
