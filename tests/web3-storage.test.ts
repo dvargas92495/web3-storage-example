@@ -14,37 +14,56 @@ function makeStorageClient() {
 }
 
 test("Demo showing basic use case of Web3 Storage", async () => {
-  test.setTimeout(60000);
-
+  test.setTimeout(120000);
+  const iterations = 10;
+  const timing: Record<string, number>[] = [];
   const client = makeStorageClient();
-  const content = `Random content: ${v4()}`;
-  const files = [new File([content], "plain-utf8.txt")];
-  const ipfsUploadStart = performance.now();
-  const cid = await client.put(files, { wrapWithDirectory: false });
+
+  await Promise.all(
+    Array(iterations)
+      .fill(null)
+      .map(async () => {
+        const content = `Random content: ${v4()}`;
+        const files = [new File([content], "plain-utf8.txt")];
+        const ipfsUploadStart = performance.now();
+        const cid = await client.put(files, { wrapWithDirectory: false });
+        const upload = performance.now() - ipfsUploadStart;
+        console.log("Time elapsed uploading", cid, "to IPFS:", upload); // 1s - 2s
+
+        const fetch = async () => {
+          const ipfsDownloadStart = performance.now();
+          const response = await client.get(cid);
+          const download = performance.now() - ipfsDownloadStart;
+          console.log("Time elapsed downloading", cid, "from IPFS:", download);
+
+          // sanity checking contents
+          const files = await response!.files();
+          const firstFileBuffer = await files[0].arrayBuffer();
+          expect(Buffer.from(firstFileBuffer!).toString()).toEqual(content);
+          return download;
+        };
+
+        const fetch1 = await fetch(); // anywhere between 5s - 20s
+        const fetch2 = await fetch(); // under 500ms
+        const fetch3 = await fetch(); // under 500ms
+        timing.push({ upload, fetch1, fetch2, fetch3 });
+      })
+  );
+
   console.log(
-    "Time elapsed uploading",
-    cid,
-    "to IPFS:",
-    performance.now() - ipfsUploadStart
-  ); // 1s - 2s
-
-  const fetch = async () => {
-    const ipfsDownloadStart = performance.now();
-    const response = await client.get(cid);
-    console.log(
-      "Time elapsed downloading",
-      cid,
-      "from IPFS:",
-      performance.now() - ipfsDownloadStart
-    );
-
-    // sanity checking contents
-    const files = await response!.files();
-    const firstFileBuffer = await files[0].arrayBuffer();
-    expect(Buffer.from(firstFileBuffer!).toString()).toEqual(content);
-  };
-
-  await fetch(); // anywhere between 5s - 20s
-  await fetch(); // under 500ms
-  await fetch(); // under 500ms
+    "Average upload speed:",
+    timing.reduce((p, c) => p + c.upload, 0) / 10
+  );
+  console.log(
+    "Average initial fetch speed:",
+    timing.reduce((p, c) => p + c.fetch1, 0) / 10
+  );
+  console.log(
+    "Average second fetch speed:",
+    timing.reduce((p, c) => p + c.fetch2, 0) / 10
+  );
+  console.log(
+    "Average third fetch speed:",
+    timing.reduce((p, c) => p + c.fetch3, 0) / 10
+  );
 });
