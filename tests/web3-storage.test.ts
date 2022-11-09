@@ -34,15 +34,23 @@ test("Demo showing basic use case of Web3 Storage", async () => {
         const fetch = async () => {
           const ipfsDownloadStart = performance.now();
           const firstFileBuffer = await axios
-            .get(`https://${cid}.ipfs.w3.link/plain-utf8.txt`, { responseType: "arraybuffer" })
-            .then((r) => r.data as ArrayBuffer);
+            .get(`https://${cid}.ipfs.w3s.link/plain-utf8.txt`, {
+              responseType: "arraybuffer",
+            })
+            .then((r) => r.data as ArrayBuffer)
+            .catch((e) => {
+              console.error("Failed to fetch", cid);
+              console.error(e.response.data.toString());
+              return undefined;
+            });
           const download = performance.now() - ipfsDownloadStart;
           console.log("Time elapsed downloading", cid, "from IPFS:", download);
 
           // sanity checking contents
           // const files = await response!.files();
           // const firstFileBuffer = await files[0].arrayBuffer();
-          expect(Buffer.from(firstFileBuffer!).toString()).toEqual(content);
+          if (firstFileBuffer)
+            expect(Buffer.from(firstFileBuffer).toString()).toEqual(content);
           return download;
         };
 
