@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { Web3Storage, File } from "web3.storage";
 import dotenv from "dotenv";
 import { v4 } from "uuid";
+import axios from "axios";
 dotenv.config();
 
 function getAccessToken() {
@@ -32,13 +33,15 @@ test("Demo showing basic use case of Web3 Storage", async () => {
 
         const fetch = async () => {
           const ipfsDownloadStart = performance.now();
-          const response = await client.get(cid);
+          const firstFileBuffer = await axios
+            .get(`https://${cid}.ipfs.w3.link/plain-utf8.txt`, { responseType: "arraybuffer" })
+            .then((r) => r.data as ArrayBuffer);
           const download = performance.now() - ipfsDownloadStart;
           console.log("Time elapsed downloading", cid, "from IPFS:", download);
 
           // sanity checking contents
-          const files = await response!.files();
-          const firstFileBuffer = await files[0].arrayBuffer();
+          // const files = await response!.files();
+          // const firstFileBuffer = await files[0].arrayBuffer();
           expect(Buffer.from(firstFileBuffer!).toString()).toEqual(content);
           return download;
         };
