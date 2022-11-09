@@ -34,7 +34,7 @@ test("Demo showing basic use case of Web3 Storage", async () => {
         const fetch = async () => {
           const ipfsDownloadStart = performance.now();
           const firstFileBuffer = await axios
-            .get(`https://${cid}.ipfs.w3s.link/plain-utf8.txt`, {
+            .get(`https://${cid}.ipfs.w3s.link`, {
               responseType: "arraybuffer",
             })
             .then((r) => r.data as ArrayBuffer)
